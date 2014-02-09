@@ -1,0 +1,2 @@
+ insert into users values(default,'emily','corro','emilyrebeca20@gmail.com','20191602','gatos','usuario');
+ insert into users values(default,'jose','corro','josecorro@gmail.com','20191602','videojuegos','usuario');
