@@ -2,6 +2,7 @@ require "sinatra"
 require "json"
 require "mysql2"
 require "active_record"
+require "base64"
 
 
 ActiveRecord::Base.establish_connection(  
@@ -15,16 +16,39 @@ ActiveRecord::Base.establish_connection(
 class User < ActiveRecord::Base
 end
 
+#Recibe una solicitud devuelve un objeto de
+#tipo User
+def userlogin(req)
+	basica = request.env["HTTP_AUTHORIZATION"].to_s.split("Basic ")
+	basicas = basica[1].to_s
+	authdata = (Base64.decode64(basica.to_s)).split(':')
+	username = authdata[0].to_s
+	pass = authdata[1].to_s
+	puts "Usuario: #{username}"
+	puts "Password: #{pass}"
+	u = User.where(email:username,contrasena:pass).take
+	return u
+end
+
 get '/' do
 	"Hello World"
 end
 
 #Todos los usuarios
 get '/apinotes/user' do
-	if User.all.length > 0 then
-		User.all.to_json
-	else
-		"No hay usuario registrados"
+	u = userlogin(request)						#Se verifica usuario y contrasena
+	if u then									#Si existe
+		if u.rol == 'administrador' then		#Tiene que ser administrador
+			if User.all.length > 0 then			#Si hay algun usuario registrado
+				User.all.to_json				#Se devuelven en formato to_json
+			else  								#Si no hay usuario registrados
+				"No hay usuario registrados"	#Se devuelve el mensaje
+			end
+		else 									#Si no es administrador
+			"No esta autorizado"				#Se devuelve el mensaje
+		end
+	else 										#Si el usuario no existe
+		"Debe iniciar sesion"					#Se devuelve el mensaje
 	end
 end
 
