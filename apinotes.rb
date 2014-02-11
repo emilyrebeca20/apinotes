@@ -26,7 +26,7 @@ def userlogin(req)
 	pass = authdata[1].to_s
 	puts "Usuario: #{username}"
 	puts "Password: #{pass}"
-	u = User.where(email:username,contrasena:pass).take
+	u = User.where(email:username,password:pass).take
 	return u
 end
 
@@ -38,7 +38,7 @@ end
 get '/apinotes/user' do
 	u = userlogin(request)						#Se verifica usuario y contrasena
 	if u then									#Si existe
-		if u.rol == 'administrador' then		#Tiene que ser administrador
+		if u.role == 'admin' then		#Tiene que ser administrador
 			if User.all.length > 0 then			#Si hay algun usuario registrado
 				User.all.to_json				#Se devuelven en formato to_json
 			else  								#Si no hay usuario registrados
@@ -59,7 +59,7 @@ get '/apinotes/user/:id' do
 		u = User.where(id:params[:id]).first	#Se obtiene el usuario requerido en la peticion
 		if u then								#Si este existe
 												#Se compara el id del login con el de la peticion
-			if ulog.id == u.id || ulog.rol == 'administrador' then				
+			if ulog.id == u.id || ulog.role == 'admin' then				
 				u.to_json						#Si coincide, se devuelve en formato json
 			else 								#Si no coincide
 				"No esta autorizado"			#Se devuelve el error	 
@@ -73,20 +73,23 @@ get '/apinotes/user/:id' do
 end
 
 #Crear un usuario
+#Verificar que el email no sea duplicado!!!
 post '/apinotes/user' do
-	name = params[:nombre]
-	lastname = params[:apellido]
-	email = params[:correoe]
-	answer = params[:resps]
-	password = params[:contrasena]
+	name = params[:name]
+	lastname = params[:lastn]
+	email = params[:email]
+	password = params[:pass]
+	question = params[:secquest]
+	answer = params[:secans]
 
 	u = User.new
-	u.nombre = name
-	u.apellido = lastname
+	u.name = name
+	u.last_name = lastname
 	u.email = email
-	u.respuesta_pregunta = answer
-	u.contrasena = password
-	u.rol = 'usuario'
+	u.question = question
+	u.answer = answer
+	u.password = password
+	u.role = 'user'
 	u.save
 
 	# puts name 
@@ -108,30 +111,35 @@ put '/apinotes/user/:id' do
 		u = User.where(id:params[:id]).first	#Se obtiene el usuario requerido en la peticion
 		if u then								#Si este existe
 												#Se compara el id del login con el de la peticion
-			if ulog.id == u.id || ulog.rol == 'administrador' then				
-				name = params[:nombre]
-				lastname = params[:apellido]
-				email = params[:correoe]
-				answer = params[:resps]
-				password = params[:contrasena]
+			if ulog.id == u.id || ulog.role == 'admin' then				
+				name = params[:name]
+				lastname = params[:lastn]
+				email = params[:email]
+				password = params[:pass]
+				question = params[:secquest]
+				answer = params[:secans]
 				if name then
-					u.update(nombre:name)
+					u.update(name:name)
 					# u.nombre = name
 				end
 				if lastname then
-					u.update(apellido:lastname)
+					u.update(last_name:lastname)
 					# u.apellido = lastname
 				end
 				if email then
 					u.update(email:email)
 					# u.email = email
 				end
+				if question then
+					u.update(question:question)
+					# u.respuesta_pregunta = answer
+				end
 				if answer then
-					u.update(respuesta_pregunta:answer)
+					u.update(answer:answer)
 					# u.respuesta_pregunta = answer
 				end
 				if password then
-					u.update(contrasena:password)
+					u.update(password:password)
 					# u.contrasena = password
 				end
 				"Usuario actualizado"			#Se actualiza el usuario
@@ -142,7 +150,7 @@ put '/apinotes/user/:id' do
 			"El usuario no existe"				#Se devuelve el error
 		end
 	else 										#Si el usuario no existe
-		"El usuario no existe"					#Se devuelve el error
+		"Debe iniciar sesion"					#Se devuelve el error
 	end 						
 end
 
@@ -150,7 +158,7 @@ end
 delete '/apinotes/user' do
 	u = userlogin(request)						#Se verifica usuario y contrasena
 	if u then									#Si existe
-		if u.rol == 'administrador' then		#Tiene que ser administrador
+		if u.role == 'admin' then		#Tiene que ser administrador
 			if User.all.length > 0 then			#Si hay algun usuario registrado
 				User.delete_all					#Se eliminan todos
 				"Todos los usuarios fueron eliminados"
@@ -172,7 +180,7 @@ delete '/apinotes/user/:id' do
 		u = User.where(id:params[:id]).first	#Se obtiene el usuario requerido en la peticion
 		if u then								#Si este existe
 												#Se compara el id del login con el de la peticion
-			if ulog.id == u.id || ulog.rol == 'administrador' then				
+			if ulog.id == u.id || ulog.role == 'admin' then				
 				u.destroy
 				"Usuario eliminado"
 			else 								#Si no coincide
