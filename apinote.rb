@@ -38,7 +38,7 @@ end
 get "/apinotes/note" do
 	u = userlogin(request)
 	if u then
-		if u.role == "administrador" then
+		if u.role == "admin" then
 			if Task.all.length > 0 then
 				Task.all.to_json
 			else

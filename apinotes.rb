@@ -16,9 +16,28 @@ ActiveRecord::Base.establish_connection(
 class User < ActiveRecord::Base
 end
 
+class ReturnCode
+	CANEXEC =	1000	#Ejecutar la tarea
+	UNAUTH = 	1001	#No autorizado
+	LOGINREQ = 	1002	#Necesario login
+	RNOTFOUND = 1003	#Recurso no encontrado
+	BADLOGIN = 	1004	#Usuario o password inválido
+end
+
+class AccessResult
+	attr_reader :code
+	attr_reader :message
+	attr_writer :code
+	attr_writer :message
+	def initialize(code,message)
+		@code = code 
+		@message = message
+	end
+end
+
 #Recibe una solicitud devuelve un objeto de
 #tipo User
-def userlogin(req)
+def userlogin()
 	basica = request.env["HTTP_AUTHORIZATION"].to_s.split("Basic ")
 	basicas = basica[1].to_s
 	authdata = (Base64.decode64(basica.to_s)).split(':')
@@ -30,26 +49,65 @@ def userlogin(req)
 	return u
 end
 
+def userAuth(adminreq=false,loginreq=false)
+	response = AccessResult.new(ReturnCode::CANEXEC,"Se pueden ejecutar las acciones.")	#Se crea un objeto de respuesta correcta
+	if loginreq || adminreq then														#Si es necesario el login del usuario o del administrador
+		basica = request.env["HTTP_AUTHORIZATION"].to_s.split("Basic ")					#Se obtiene el objeto User autenticado usando HTTP BA
+		basicas = basica[1].to_s
+		authdata = (Base64.decode64(basica.to_s)).split(':')
+		username = authdata[0].to_s
+		pass = authdata[1].to_s
+		if not username.length or pass.length then										#Si no se indica usuario o contraseña
+			response.code = ReturnCode::LOGINREQ
+			response.message = "Debe iniciar sesión."
+			return response
+		end
+		userlog = User.where(email:username,password:pass).take
+		if not userlog then																#Si no se encuentra el usuario con la contraseña
+			response.code = ReturnCode::BADLOGIN
+			response.message = "Ususario o contraseña inválidos."
+			return response
+		end
+		if adminreq and userlog.role != "admin" then									#Si se requiere ser administrador y no lo es
+			response.code = ReturnCode::UNAUTH
+			responde.message = "Ususario no autorizado"
+			return response
+		end
+	end
+end
+
 get '/' do
 	"Hello World"
 end
 
 #Todos los usuarios
 get '/apinotes/user' do
-	u = userlogin(request)						#Se verifica usuario y contrasena
-	if u then									#Si existe
-		if u.role == 'admin' then		#Tiene que ser administrador
-			if User.all.length > 0 then			#Si hay algun usuario registrado
-				User.all.to_json				#Se devuelven en formato to_json
-			else  								#Si no hay usuario registrados
-				"No hay usuarios registrados"	#Se devuelve el error
-			end
-		else 									#Si no es administrador
-			"No esta autorizado"				#Se devuelve el error
+	res = userAuth(adminreq=true,loginreq=true)
+	if res.code == ReturnCode::CANEXEC then
+		if User.all.length > 0 then			#Si hay algun usuario registrado
+			User.all.to_json				#Se devuelven en formato to_json
+		else  								#Si no hay usuario registrados
+			ar = AccessResult.new(ReturnCode::RNOTFOUND,"No hay usuarios registrados")
+			ar.to_json						#Se devuelve el error
 		end
-	else 										#Si el usuario no existe
-		"Debe iniciar sesion"					#Se devuelve el error
-	end
+	else
+		res.to_json
+	end 
+
+	# u = userlogin(request)						#Se verifica usuario y contrasena
+	# if u then									#Si existe
+	# 	if u.role == 'admin' then		#Tiene que ser administrador
+	# 		if User.all.length > 0 then			#Si hay algun usuario registrado
+	# 			User.all.to_json				#Se devuelven en formato to_json
+	# 		else  								#Si no hay usuario registrados
+	# 			"No hay usuarios registrados"	#Se devuelve el error
+	# 		end
+	# 	else 									#Si no es administrador
+	# 		"No esta autorizado"				#Se devuelve el error
+	# 	end
+	# else 										#Si el usuario no existe
+	# 	"Debe iniciar sesion"					#Se devuelve el error
+	# end
 end
 
 #Un usuario
