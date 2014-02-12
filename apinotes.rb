@@ -10,7 +10,7 @@ ActiveRecord::Base.establish_connection(
 :host => "localhost",  
 :database => "TASKAPP",
 :username => "root",
-:password => "20191602",
+:password => "",
 )  
 
 class User < ActiveRecord::Base
@@ -49,7 +49,7 @@ def userlogin()
 	return u
 end
 
-def userAuth(adminreq=false,loginreq=false)
+def userAuth(adminreq=false,loginreq=false,userid=nil)
 	response = AccessResult.new(ReturnCode::CANEXEC,"Se pueden ejecutar las acciones.")	#Se crea un objeto de respuesta correcta
 	if loginreq || adminreq then														#Si es necesario el login del usuario o del administrador
 		basica = request.env["HTTP_AUTHORIZATION"].to_s.split("Basic ")					#Se obtiene el objeto User autenticado usando HTTP BA
@@ -57,7 +57,7 @@ def userAuth(adminreq=false,loginreq=false)
 		authdata = (Base64.decode64(basica.to_s)).split(':')
 		username = authdata[0].to_s
 		pass = authdata[1].to_s
-		if not username.length or pass.length then										#Si no se indica usuario o contraseña
+		if not username.length or not pass.length then									#Si no se indica usuario o contraseña
 			response.code = ReturnCode::LOGINREQ
 			response.message = "Debe iniciar sesión."
 			return response
@@ -65,15 +65,24 @@ def userAuth(adminreq=false,loginreq=false)
 		userlog = User.where(email:username,password:pass).take
 		if not userlog then																#Si no se encuentra el usuario con la contraseña
 			response.code = ReturnCode::BADLOGIN
-			response.message = "Ususario o contraseña inválidos."
+			response.message = "Usuario o contraseña inválidos."
 			return response
 		end
 		if adminreq and userlog.role != "admin" then									#Si se requiere ser administrador y no lo es
 			response.code = ReturnCode::UNAUTH
-			responde.message = "Ususario no autorizado"
+			response.message = "Usuario no autorizado"
 			return response
 		end
+		if (userlog.role != "admin") and (userid.to_s != userlog.id.to_s) then
+				#puts userlog.role
+				#puts userlog.id
+				#puts userid
+				response.code = ReturnCode::UNAUTH
+				response.message = "Usuario no autorizado 2"
+				return response
+		end
 	end
+	return response
 end
 
 get '/' do
@@ -94,7 +103,7 @@ get '/apinotes/user' do
 		res.to_json
 	end 
 
-	# u = userlogin(request)						#Se verifica usuario y contrasena
+	# u = userlogin(request)					#Se verifica usuario y contrasena
 	# if u then									#Si existe
 	# 	if u.role == 'admin' then		#Tiene que ser administrador
 	# 		if User.all.length > 0 then			#Si hay algun usuario registrado
@@ -112,22 +121,29 @@ end
 
 #Un usuario
 get '/apinotes/user/:id' do
-	ulog = userlogin(request)					#Se verifica usuario y contrasena
-	if ulog then								#Si existe
-		u = User.where(id:params[:id]).first	#Se obtiene el usuario requerido en la peticion
-		if u then								#Si este existe
-												#Se compara el id del login con el de la peticion
-			if ulog.id == u.id || ulog.role == 'admin' then				
-				u.to_json						#Si coincide, se devuelve en formato json
-			else 								#Si no coincide
-				"No esta autorizado"			#Se devuelve el error	 
-			end
-		else 									#Si el usuario buscado no existe
-			"El usuario no existe"				#Se devuelve el error
-		end
-	else 										#Si el usuario no existe
-		"Debe iniciar sesion"					#Se devuelve el error
-	end
+	res = userAuth(adminreq=false,loginreq=true,userid=params[:id])	
+	if res.code == ReturnCode::CANEXEC then
+		u = User.where(id:params[:id]).first
+		u.to_json
+	else
+		res.to_json
+	end 
+
+	# if ulog then								#Si existe
+	# u = User.where(id:params[:id]).first	#Se obtiene el usuario requerido en la peticion
+	# 	if u then								#Si este existe
+	# 											#Se compara el id del login con el de la peticion
+	# 		if ulog.id == u.id || ulog.role == 'admin' then				
+	# 			u.to_json						#Si coincide, se devuelve en formato json
+	# 		else 								#Si no coincide
+	# 			"No esta autorizado"			#Se devuelve el error	 
+	# 		end
+	# 	else 									#Si el usuario buscado no existe
+	# 		"El usuario no existe"				#Se devuelve el error
+	# 	end
+	# else 										#Si el usuario no existe
+	# 	"Debe iniciar sesion"					#Se devuelve el error
+	# end
 end
 
 #Crear un usuario
@@ -164,51 +180,42 @@ end
 #Para recuperar password verificar respuesta de seguridad
 #y reemplazar la contraseña
 put '/apinotes/user/:id' do
-	ulog = userlogin(request)					#Se verifica usuario y contrasena
-	if ulog then								#Si existe
-		u = User.where(id:params[:id]).first	#Se obtiene el usuario requerido en la peticion
-		if u then								#Si este existe
-												#Se compara el id del login con el de la peticion
-			if ulog.id == u.id || ulog.role == 'admin' then				
-				name = params[:name]
-				lastname = params[:lastn]
-				email = params[:email]
-				password = params[:pass]
-				question = params[:secquest]
-				answer = params[:secans]
-				if name then
-					u.update(name:name)
-					# u.nombre = name
-				end
-				if lastname then
-					u.update(last_name:lastname)
-					# u.apellido = lastname
-				end
-				if email then
-					u.update(email:email)
-					# u.email = email
-				end
-				if question then
-					u.update(question:question)
-					# u.respuesta_pregunta = answer
-				end
-				if answer then
-					u.update(answer:answer)
-					# u.respuesta_pregunta = answer
-				end
-				if password then
-					u.update(password:password)
-					# u.contrasena = password
-				end
-				"Usuario actualizado"			#Se actualiza el usuario
-			else
-				"No esta autorizado"			#Se devuelve el error
-			end
-		else 									#Si el usuario buscado no existe
-			"El usuario no existe"				#Se devuelve el error
+	res = userAuth(adminreq=false,loginreq=true,userid=params[:id])	
+	u = User.where(id:params[:id]).first
+	if res.code == ReturnCode::CANEXEC then			
+		name = params[:name]
+		lastname = params[:lastname]
+		email = params[:email]
+		password = params[:password]
+		question = params[:question]
+		answer = params[:answer]
+		if name then
+			u.update(name:name)
+			# u.nombre = name
 		end
-	else 										#Si el usuario no existe
-		"Debe iniciar sesion"					#Se devuelve el error
+		if lastname then
+			u.update(last_name:lastname)
+			# u.apellido = lastname
+		end
+		if email then
+			u.update(email:email)
+			# u.email = email
+		end
+		if question then
+			u.update(question:question)
+			# u.respuesta_pregunta = answer
+		end
+		if answer then
+			u.update(answer:answer)
+			# u.respuesta_pregunta = answer
+		end
+		if password then
+			u.update(password:password)
+			# u.contrasena = password
+		end
+		"Usuario actualizado"			#Se actualiza el usuario
+	else
+		res.to_json
 	end 						
 end
 
