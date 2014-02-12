@@ -3,6 +3,8 @@ require 'mysql2'
 require 'sinatra'
 require 'json'
 
+enable :sessions
+
 ActiveRecord::Base.logger = Logger.new(STDOUT)
 ActiveRecord::Base.establish_connection adapter:"mysql2",database:"TASKAPP",
 								username:"root",host:"localhost",
@@ -21,6 +23,7 @@ def userlogin(req)
 	puts "Usuario: #{username}"
 	puts "Password: #{pass}"
 	u = User.where(email:username,password:pass).take
+	session[:username] = username
 	return u
 end
 
@@ -42,7 +45,7 @@ get "/apinotes/note" do
 			if Task.all.length > 0 then
 				Task.all.to_json
 			else
-				"No hay notas"
+				"No hay notas #{session[:username]}"
 			end
 		else
 			"No esta autorizado"
