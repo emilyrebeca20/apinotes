@@ -1,0 +1,124 @@
+#---------------------------------------------------------------Métodos API--------------------------------------------------------------------#
+
+Recurso o acción: (1) Todos los usuarios
+	Ruta: '/apinotes/user'
+	Metodo: GET
+	Parametros: Ninguno
+	Accesible por: 
+		* Administrador
+
+Recurso o acción: (2) Información de un usuario
+	Ruta: '/apinotes/user/<idu>'
+	Metodo: GET
+	Parametros: Ninguno
+	Accesible por: 
+		* Administrador, 
+		* Usuario autenticado cuyo identificador sea <idu>
+
+Recurso o acción: (3) Creación de un usuario
+	Ruta: '/apinotes/user'
+	Metodo: POST
+	Parametros:
+		* name: Nombre del usuario (Obligatorio)
+		* lastname: Apellido del usuario (Obligatorio)
+		* email: Correo electrónico del usuario (Obligatorio)
+		* password: Contraseña del usuario (Obligatorio)
+		* question: Pregunta de seguridad para recuperar contraseña (Obligatorio)
+		* answer: Respuesta de seguridad para recuperar contraseña (Obligatorio)
+	Accesible por: 
+		* Administrador
+		* Cualquier usuario no autenticado
+
+Recurso o acción: (4) Modificar la información de un usuario
+	Ruta: '/apinotes/user/<idu>'
+	Metodo: PUT
+	Parametros:
+		* name: Nombre del usuario (Opcional)
+		* lastname: Apellido del usuario (Opcional)
+		* email: Correo electrónico del usuario (Opcional)
+		* password: Contraseña del usuario (Opcional)
+		* question: Pregunta de seguridad para recuperar contraseña (Opcional)
+		* answer: Respuesta de seguridad para recuperar contraseña (Opcional)
+	Accesible por:
+		* Administrador, 
+		* Usuario autenticado cuyo identificador sea <idu>
+
+Recurso o acción: (5) Borrar todos los usuarios
+	Ruta: '/apinotes/user'
+	Metodo: DELETE
+	Parametros: Ninguno
+	Accesible por: 
+		* Administrador
+
+Recurso o acción: (6) Borrar un usuario
+	Ruta: '/apinotes/user/<idu>'
+	Metodo: DELETE
+	Parametros: Ninguno
+	Accesible por:
+		* Administrador
+		* Usuario autenticado cuyo identificador sea <id>
+
+Recurso o acción: (7) Todas las notas de un usuario
+	Ruta: '/apinotes/user/<idu>/note'
+	Metodo: GET
+	Parametros: Ninguno
+	Accesible por:
+		* Administrador
+		* Usuario autenticado
+
+Recurso o acción: (8) Detalles de una nota de un usuario
+	Ruta: '/apinotes/user/<idu>/note/<idn>'
+	Metodo: GET
+	Parametros: Ninguno
+	Accesible por:
+		* Administrador
+		* Usuario autenticado
+
+Recurso o acción: (9) Crear nota para un usuario
+	Ruta: '/apinotes/user/<idu>/note'
+	Metodo: POST
+	Parametros:
+		* description: Contenido de la nota (Obligatorio)
+		* plan_date: Fecha para la cual se agendó (Opcional)
+		* priority: Prioridad (Opcional) 
+		* type: Tipo de nota (Opcional)
+	Accesible por:
+		* Administrador
+		* Usuario autenticado
+
+Recurso o acción: (10) Editar una nota
+	Ruta: '/apinotes/user/<idu>/note/<idn>'
+	Metodo: PUT
+	Parametros:
+		* description: Contenido de la nota (Opcional)
+		* plan_date: Fecha para la cual se agendó (Opcional)
+		* priority: Prioridad (Opcional) 
+		* finished: Si la tarea ha sido terminada (Opcional)
+		* type: Tipo de nota (Opcional)
+	Accesible por:
+		* Administrador
+		* Usuario autenticado
+
+Recurso o acción: (11) Eliminar todas las notas de un usuario
+	Ruta: '/apinotes/user/<idu>/note'
+	Metodo: DELETE
+	Parametros: Ninguno
+	Accesible por:
+		* Administrador
+		* Usuario autenticado
+
+Recurso o acción: (12) Eliminar una nota de un usuario
+	Ruta: '/apinotes/user/<idu>/note/<idn>'
+	Metodo: DELETE
+	Parametros: Ninguno
+	Accesible por:
+		* Administrador
+		* Usuario autenticado
+
+#----------------------------------------------------------Funcionamiento requerido------------------------------------------------------------#
+
+* Agendar: Se actualizan las fechas utilizando el método (10).
+* Filtros: Utilizando el método (7) para obtener las notas de un usuario y luego filtrar.
+* Autenticación: Uso de HTTP Basic Authentication, se envía usuario y contraseña en cada solicitud HTTP.
+* Registro: Utilizando el método (3)
+* Reiniciar contraseña: Método (2) para obtener pregunta de seguridad y método (4) con correo,respuesta de seguridad, contraseña nueva (y realizando confirmación)
