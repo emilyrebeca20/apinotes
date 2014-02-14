@@ -41,8 +41,6 @@ class AccessResult
 	end
 end
 
-#Recibe una solicitud devuelve un objeto de
-#tipo User
 def userlogged()
 	basica = request.env["HTTP_AUTHORIZATION"].to_s.split("Basic ")
 	basicas = basica[1].to_s
@@ -88,12 +86,36 @@ def userAuth(adminreq=false,loginreq=false,userid=nil)
 	return response
 end
 
-get '/' do
-	"Hello World"
+#Olvido contraseña
+get '/apinotes/user/question' do
+	u = User.where(email:params[:email]).first
+	if u then 
+		AccessResult.new(ReturnCode::GENEVENT,u.question).to_json
+	else
+		AccessResult.new(ReturnCode::RNOTFOUND,"No existe el usuario").to_json
+	end
 end
 
-get "/time" do
-	Time.now.to_s
+#Reiniciar contraseña
+put '/apinotes/user/password' do
+	email = params[:email]
+	npass = params[:password]
+	answer = params[:answer]
+	if email and npass and answer then
+		u = User.where(email:params[:email]).first	
+		if u then			
+			if answer.to_s == u.answer.to_s then
+				u.update(password:npass)
+				AccessResult.new(ReturnCode::GENEVENT,"Contraseña reinciada exitosamente").to_json
+			else
+				AccessResult.new(ReturnCode::GENEVENT,"Respuesta inválida").to_json
+			end
+		else
+			AccessResult.new(ReturnCode::RNOTFOUND,"El usuario no existe").to_json
+		end
+	else
+		AccessResult.new(ReturnCode::GENEXCEPT,"Faltan parametros").to_json
+	end  						
 end
 
 #Todos los usuarios
@@ -119,13 +141,6 @@ get '/apinotes/user/:idu' do
 			u.to_json
 		else
 			AccessResult.new(ReturnCode::GENEVENT,"El usuario no existe").to_json
-		end
-	elsif res.code == ReturnCode::LOGINREQ then
-		u = User.where(id:params[:idu]).first
-		if u then 
-			AccessResult.new(ReturnCode::GENEVENT,u.question).to_json
-		else
-			AccessResult.new(ReturnCode::RNOTFOUND,"No existe el usuario").to_json
 		end
 	else
 		res.to_json
@@ -373,3 +388,7 @@ delete '/apinotes/user/:idu/note/:idn' do
 		res.to_json
 	end
 end
+
+
+
+

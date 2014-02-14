@@ -1,13 +1,33 @@
-#---------------------------------------------------------------Métodos API--------------------------------------------------------------------#
+#--------------------------------------------------Métodos API-----------------------------------------------------------------#
 
-Recurso o acción: (1) Todos los usuarios
+Recurso o acción: (1) Pregunta de seguridad
+	Ruta: '/apinotes/user/question'
+	Metodo: GET
+	Parametros:
+		* email: Correo electrónico del usuario (Obligatorio)
+	Accesible por: 
+		* Administrador
+		* Cualquier usuario no autenticado
+
+Recurso o acción: (2) Reiniciar contraseña
+	Ruta: '/apinotes/user/password'
+	Metodo: PUT
+	Parametros:
+		* email: Correo electrónico del usuario (Obligatorio)
+		* password: Nueva contraseña del usuario (Obligatorio)
+		* answer: Respuesta de seguridad para recuperar contraseña (Obligatorio)
+	Accesible por: 
+		* Administrador
+		* Cualquier usuario no autenticado
+
+Recurso o acción: (3) Todos los usuarios
 	Ruta: '/apinotes/user'
 	Metodo: GET
 	Parametros: Ninguno
 	Accesible por: 
 		* Administrador
 
-Recurso o acción: (2) Información de un usuario
+Recurso o acción: (4) Información de un usuario
 	Ruta: '/apinotes/user/<idu>'
 	Metodo: GET
 	Parametros: Ninguno
@@ -15,7 +35,7 @@ Recurso o acción: (2) Información de un usuario
 		* Administrador, 
 		* Usuario autenticado cuyo identificador sea <idu>
 
-Recurso o acción: (3) Creación de un usuario
+Recurso o acción: (5) Creación de un usuario
 	Ruta: '/apinotes/user'
 	Metodo: POST
 	Parametros:
@@ -29,7 +49,7 @@ Recurso o acción: (3) Creación de un usuario
 		* Administrador
 		* Cualquier usuario no autenticado
 
-Recurso o acción: (4) Modificar la información de un usuario
+Recurso o acción: (6) Modificar la información de un usuario
 	Ruta: '/apinotes/user/<idu>'
 	Metodo: PUT
 	Parametros:
@@ -43,14 +63,14 @@ Recurso o acción: (4) Modificar la información de un usuario
 		* Administrador, 
 		* Usuario autenticado cuyo identificador sea <idu>
 
-Recurso o acción: (5) Borrar todos los usuarios
+Recurso o acción: (7) Borrar todos los usuarios
 	Ruta: '/apinotes/user'
 	Metodo: DELETE
 	Parametros: Ninguno
 	Accesible por: 
 		* Administrador
 
-Recurso o acción: (6) Borrar un usuario
+Recurso o acción: (8) Borrar un usuario
 	Ruta: '/apinotes/user/<idu>'
 	Metodo: DELETE
 	Parametros: Ninguno
@@ -58,7 +78,7 @@ Recurso o acción: (6) Borrar un usuario
 		* Administrador
 		* Usuario autenticado cuyo identificador sea <id>
 
-Recurso o acción: (7) Todas las notas de un usuario
+Recurso o acción: (9) Todas las notas de un usuario
 	Ruta: '/apinotes/user/<idu>/note'
 	Metodo: GET
 	Parametros: Ninguno
@@ -66,7 +86,7 @@ Recurso o acción: (7) Todas las notas de un usuario
 		* Administrador
 		* Usuario autenticado
 
-Recurso o acción: (8) Detalles de una nota de un usuario
+Recurso o acción: (10) Detalles de una nota de un usuario
 	Ruta: '/apinotes/user/<idu>/note/<idn>'
 	Metodo: GET
 	Parametros: Ninguno
@@ -74,7 +94,7 @@ Recurso o acción: (8) Detalles de una nota de un usuario
 		* Administrador
 		* Usuario autenticado
 
-Recurso o acción: (9) Crear nota para un usuario
+Recurso o acción: (11) Crear nota para un usuario
 	Ruta: '/apinotes/user/<idu>/note'
 	Metodo: POST
 	Parametros:
@@ -86,7 +106,7 @@ Recurso o acción: (9) Crear nota para un usuario
 		* Administrador
 		* Usuario autenticado
 
-Recurso o acción: (10) Editar una nota
+Recurso o acción: (12) Editar una nota
 	Ruta: '/apinotes/user/<idu>/note/<idn>'
 	Metodo: PUT
 	Parametros:
@@ -99,7 +119,7 @@ Recurso o acción: (10) Editar una nota
 		* Administrador
 		* Usuario autenticado
 
-Recurso o acción: (11) Eliminar todas las notas de un usuario
+Recurso o acción: (13) Eliminar todas las notas de un usuario
 	Ruta: '/apinotes/user/<idu>/note'
 	Metodo: DELETE
 	Parametros: Ninguno
@@ -107,7 +127,7 @@ Recurso o acción: (11) Eliminar todas las notas de un usuario
 		* Administrador
 		* Usuario autenticado
 
-Recurso o acción: (12) Eliminar una nota de un usuario
+Recurso o acción: (14) Eliminar una nota de un usuario
 	Ruta: '/apinotes/user/<idu>/note/<idn>'
 	Metodo: DELETE
 	Parametros: Ninguno
@@ -115,10 +135,10 @@ Recurso o acción: (12) Eliminar una nota de un usuario
 		* Administrador
 		* Usuario autenticado
 
-#----------------------------------------------------------Funcionamiento requerido------------------------------------------------------------#
+#--------------------------------------------------Funcionamiento requerido----------------------------------------------------#
 
 * Agendar: Se actualizan las fechas utilizando el método (10).
 * Filtros: Utilizando el método (7) para obtener las notas de un usuario y luego filtrar.
 * Autenticación: Uso de HTTP Basic Authentication, se envía usuario y contraseña en cada solicitud HTTP.
 * Registro: Utilizando el método (3)
-* Reiniciar contraseña: Método (2) para obtener pregunta de seguridad y método (4) con correo,respuesta de seguridad, contraseña nueva (y realizando confirmación)
+* Reiniciar contraseña: Método (1) para obtener pregunta de seguridad y método (2) para reiniciar la contraseña 
